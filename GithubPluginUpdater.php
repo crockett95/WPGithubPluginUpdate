@@ -59,7 +59,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * Holds the private key for the Github API, if entered
          * @var bool/string
          */
-        // static $githubPrivateKey = get_option('wpGithubPluginUpdater_apiKey');
+        static $githubPrivateKey = '';
 
         /**
          * Constants for setting the release channel. Defaults to PRODUCTION
@@ -216,7 +216,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             $this->actionsAndFilters();
             
             //  Initialize fields
-            $this->pluginFile = $mainFile;
+            $this->pluginFile = self::$pluginsArray[$mainFile];
             $this->releaseChannel = strtolower( trim( $releaseChannel ) );
             $this->subDir = plugin_basename( $mainFile );
             $this->useTags = $apiTags;
@@ -519,7 +519,9 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @uses    WpGithubPluginUpdater::$defaultRequestArgs  To set the HTTP request arguments
          */
         private function getLatestReadme () {
-            $readmeURL = 'https://raw.github.com/' . $this->githubRepo . '/' . $this->latestVersion->tag_name . '/' . $this->githubReadmeFile;
+            $tag = ( $this->apiTags ? $this->latestVersion->name : $this->latestVersion->tag_name );
+            
+            $readmeURL = 'https://raw.github.com/' . $this->githubRepo . '/' . $tag . '/' . $this->githubReadmeFile;
             
             $readme = wp_remote_get( $readmeURL, $this->defaultRequestArgs );
             
@@ -585,6 +587,32 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             $pluginData->rating;
             
             return $pluginData;
+        }
+        
+        /**
+         * Adds a plugin to an array, with its true file location as a key to a WP location
+         * to account for symlinks
+         *
+         * @author  Stephen
+         * @version 0.0.1
+         * @since   0.0.1
+         * @param   string  File path of main plugin file
+         * @return  boolean Always returns true
+         */
+        public static setupPlugin( $mainFile ) {
+            $wpPluginFile = __FILE__;
+            if ( isset( $GLOBALS['mu_plugin'] ) ) {
+                $wpPluginFile = $GLOBALS['mu_plugin'];
+            }
+            if ( isset( $GLOBALS['network_plugin'] ) ) {
+                $wpPluginFile = $GLOBALS['network_plugin'];
+            }
+            if ( isset( $GLOBALS['plugin'] ) ) {
+                $wpPluginFile = $GLOBALS['plugin'];
+            }
+            self::$pluginsArray[ $mainFile ] = $wpPluginFile;
+            
+            return true;
         }
     }
 }

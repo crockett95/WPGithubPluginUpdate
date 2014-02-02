@@ -221,7 +221,8 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             $this->subDir = plugin_basename( $this->pluginFile );
             $this->useTags = $apiTags;
             
-            $tempSlug = end(explode('/', $this->subDir));  
+            $tempSlug = explode('/', $this->subDir);
+            $tempSlug = end($tempSlug);  
             $this->slug = str_replace('.php', '', $tempSlug);
             $this->githubReadmeFile = $readmeFileName;
             

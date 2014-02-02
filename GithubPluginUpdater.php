@@ -263,6 +263,10 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             add_filter( 'extra_plugin_headers', array( $this, 'filterPluginHeaders' ) );
             add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'checkForUpdate' ) );
             
+            
+            if (!has_action('admin_menu', array('WpGithubPluginUpdater', 'adminPageMenu'))) {
+                add_action('admin_menu', array('WpGithubPluginUpdater', 'adminPageMenu'));
+            }
             //  TODO Add 'plugins_api' filter with hook to README
         }
         
@@ -306,7 +310,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @uses    WpGithubPluginUpdater::$defaultRequestArgs  To set request arguments
          * @return  stdClass|boolean    Returns parsed data if successful, or `false` if not
          */
-        private function retrieveGithubRepo () {            
+        private function retrieveGithubRepo () {
 
             $githubPath = 'https://api.github.com/repos/' . $this->githubRepo;
             $githubRaw = wp_remote_get( $githubPath, $this->defaultRequestArgs );
@@ -600,7 +604,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @return  boolean Always returns true
          */
         public static function setupPlugin( $mainFile ) {
-            $wpPluginFile = __FILE__;
+            $wpPluginFile = $mainFile;
             if ( isset( $GLOBALS['mu_plugin'] ) ) {
                 $wpPluginFile = $GLOBALS['mu_plugin'];
             }
@@ -613,6 +617,26 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             self::$pluginsArray[ $mainFile ] = $wpPluginFile;
             
             return true;
+        }
+        
+        /**
+         * Function for the WP admin menu
+         *
+         * @return void
+         * @author Stephen
+         **/
+        public static function adminPageMenu () {
+            add_options_page(__('Github Plugin Updater'), __('Github Plugin Updater'), 'manage_options', 'wp-github-plugin-updater', array('WpGithubPluginUpdater', 'adminPage'));
+        }
+        
+        /**
+         * Function for the WP admin options page
+         *
+         * @return void
+         * @author Stephen
+         **/
+        public static function adminPage () {
+            echo "Hello world";
         }
     }
 }

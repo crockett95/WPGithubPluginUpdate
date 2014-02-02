@@ -519,7 +519,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @uses    WpGithubPluginUpdater::$defaultRequestArgs  To set the HTTP request arguments
          */
         private function getLatestReadme () {
-            $tag = ( $this->apiTags ? $this->latestVersion->name : $this->latestVersion->tag_name );
+            $tag = ( $this->useTags ? $this->latestVersion->name : $this->latestVersion->tag_name );
             
             $readmeURL = 'https://raw.github.com/' . $this->githubRepo . '/' . $tag . '/' . $this->githubReadmeFile;
             

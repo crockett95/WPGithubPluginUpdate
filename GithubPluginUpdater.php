@@ -599,7 +599,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @param   string  File path of main plugin file
          * @return  boolean Always returns true
          */
-        public static setupPlugin( $mainFile ) {
+        public static function setupPlugin( $mainFile ) {
             $wpPluginFile = __FILE__;
             if ( isset( $GLOBALS['mu_plugin'] ) ) {
                 $wpPluginFile = $GLOBALS['mu_plugin'];

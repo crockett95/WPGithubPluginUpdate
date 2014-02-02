@@ -4,6 +4,7 @@
 if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
     /**
      * The WP Github Plugin Updater Class
+     * ===
      * 
      * Hooks into standard Wordpress functionality for plugins being hosted on
      * Github. Uses the Github API to find and supply the necessary data. Only 
@@ -50,22 +51,15 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
      */
     class WpGithubPluginUpdater {
         /**
-         * Holds the slug of the plugin, equal to the basename of the main plugin file
-         * @var string
+         * Holds an array of all the plugins using this class
          */
-        private $slug = '';
+        static $pluginsArray = array();
         
         /**
-         * Holds the file path of the main plugn file
-         * @var string
+         * Holds the private key for the Github API, if entered
+         * @var bool/string
          */
-        private $pluginFile = '';
-        
-        /**
-         * Holds the release channel to be used, as an integer representation
-         * @var integer
-         */
-        private $releaseChannel = null;
+        static $githubPrivateKey = get_option('wpGithubPluginUpdater_apiKey');
 
         /**
          * Constants for setting the release channel. Defaults to PRODUCTION
@@ -90,6 +84,24 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
         );
         
         /**
+         * Holds the slug of the plugin, equal to the basename of the main plugin file
+         * @var string
+         */
+        private $slug = '';
+        
+        /**
+         * Holds the file path of the main plugn file
+         * @var string
+         */
+        private $pluginFile = '';
+        
+        /**
+         * Holds the release channel to be used, as an integer representation
+         * @var integer
+         */
+        private $releaseChannel = null;
+        
+        /**
          * The subdirectory and filename of the plugin
          * @var string
          */
@@ -106,6 +118,12 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @var string
          */
         private $githubRepo = '';
+        
+        /**
+         * Whether to search tags or only releases in a repo
+         * @var string
+         */
+        private $useTags = true;
         
         /**
          * The name of the github README file
@@ -167,6 +185,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @version 0.0.0
          * @since   0.0.0
          * @param   string  $mainFile       The file path of the main plugin file
+         * @param   boolean $apiTags        Search tags for latest release
          * @param   integer $releaseChannel What release channel to get updates on
          * @param   string  $readmeFileName Defaults to README.md
          * 
@@ -186,7 +205,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @uses    WpGithubPluginUpdater::$releases
          * @uses    WpGithubPluginUpdater::$latestVersion
          */
-        function __construct ( $mainFile, $releaseChannel = self::PRODUCTION, $readmeFileName = 'README.md' ) {
+        function __construct ( $mainFile, $apiTags = true, $releaseChannel = self::PRODUCTION, $readmeFileName = 'README.md' ) {
             
             //  No sense in checking if the user can't do anything with it
             if ( !current_user_can('update_plugins') ) {
@@ -200,6 +219,8 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             $this->pluginFile = $mainFile;
             $this->releaseChannel = strtolower( trim( $releaseChannel ) );
             $this->subDir = plugin_basename( $mainFile );
+            $this->useTags = $apiTags;
+            
             list ($t1, $t2) = explode('/', $this->subDir);  
             $this->slug = str_replace('.php', '', $t2);
             $this->githubReadmeFile = $readmeFileName;
@@ -226,7 +247,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
                 
                 //  If there's no data we don't need to save it
                 if ( $this->fileHeaderData && $this->githubRepoData && $this->releases ) {
-                    set_site_transient( $this->slug . "-github-upgrade-data", $this, 10 * HOUR_IN_SECONDS );
+                    set_site_transient( $this->slug . "-github-upgrade-data", $this, 1 );
                 }
             }
         }
@@ -321,7 +342,11 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             }
             
             //  Get the releases URI
-            $releaseUrlRaw = $this->githubRepoData->releases_url;
+            if ( $this->useTags ) {
+                $releaseUrlRaw = $this->githubRepoData->tags_url;
+            } else {
+                $releaseUrlRaw = $this->githubRepoData->releases_url;
+            }
             
             //  Take off any of the `optional` flags
             $releaseUrl = preg_replace( '/\{[^\}]*\}/', '', $releaseUrlRaw );

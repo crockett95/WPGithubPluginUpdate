@@ -218,7 +218,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             //  Initialize fields
             $this->pluginFile = self::$pluginsArray[$mainFile];
             $this->releaseChannel = strtolower( trim( $releaseChannel ) );
-            $this->subDir = plugin_basename( $mainFile );
+            $this->subDir = plugin_basename( $this->pluginFile );
             $this->useTags = $apiTags;
             
             list ($t1, $t2) = explode('/', $this->subDir);  

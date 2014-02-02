@@ -221,8 +221,8 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             $this->subDir = plugin_basename( $this->pluginFile );
             $this->useTags = $apiTags;
             
-            list ($t1, $t2) = explode('/', $this->subDir);  
-            $this->slug = str_replace('.php', '', $t2);
+            $tempSlug = end(explode('/', $this->subDir));  
+            $this->slug = str_replace('.php', '', $tempSlug);
             $this->githubReadmeFile = $readmeFileName;
             
             $savedData = get_site_transient( $this->slug . "-github-upgrade-data" );
@@ -263,11 +263,17 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             add_filter( 'extra_plugin_headers', array( $this, 'filterPluginHeaders' ) );
             add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'checkForUpdate' ) );
             
-            
-            if (!has_action('admin_menu', array('WpGithubPluginUpdater', 'adminPageMenu'))) {
-                add_action('admin_menu', array('WpGithubPluginUpdater', 'adminPageMenu'));
-            }
             //  TODO Add 'plugins_api' filter with hook to README
+        }
+        
+        /**
+         * undocumented function
+         *
+         * @return void
+         * @author Stephen
+         **/
+        public static function staticActionsAndFilters () {
+            add_action('admin_menu', array('WpGithubPluginUpdater', 'adminPageMenu'));
         }
         
         /**
@@ -603,7 +609,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @param   string  File path of main plugin file
          * @return  boolean Always returns true
          */
-        public static function setupPlugin( $mainFile ) {
+        public static function setupPlugin ( $mainFile ) {
             $wpPluginFile = $mainFile;
             if ( isset( $GLOBALS['mu_plugin'] ) ) {
                 $wpPluginFile = $GLOBALS['mu_plugin'];
@@ -626,7 +632,13 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * @author Stephen
          **/
         public static function adminPageMenu () {
-            add_options_page(__('Github Plugin Updater'), __('Github Plugin Updater'), 'manage_options', 'wp-github-plugin-updater', array('WpGithubPluginUpdater', 'adminPage'));
+            add_options_page(
+                __('Github Plugin Updater'),
+                __('Github Plugin Updater'),
+                'manage_options',
+                'wp-github-plugin-updater',
+                array('WpGithubPluginUpdater', 'adminPage')
+            );
         }
         
         /**
@@ -639,4 +651,6 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
             echo "Hello world";
         }
     }
+    
+    WpGithubPluginUpdater::staticActionsAndFilters();
 }

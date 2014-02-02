@@ -59,7 +59,7 @@ if ( !class_exists( 'WpGithubPluginUpdater' ) ) {
          * Holds the private key for the Github API, if entered
          * @var bool/string
          */
-        static $githubPrivateKey = get_option('wpGithubPluginUpdater_apiKey');
+        // static $githubPrivateKey = get_option('wpGithubPluginUpdater_apiKey');
 
         /**
          * Constants for setting the release channel. Defaults to PRODUCTION
